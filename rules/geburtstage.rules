@@ -1,0 +1,47 @@
+rule "Tage bis Geburtstag berechnen"
+when 
+	Time cron "0 6 * 1/1 * ? *" or
+	Item DelayedStartup changed from OFF to ON
+then
+	logInfo("all.rules", "Tage bis Geburtstage berechnen")
+	//GebTag1
+	val DateTime varGebTag1Datum = new DateTime((GebTag1Datum.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long varGebTag1Diff = Math::round((varGebTag1Datum.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	if ( varGebTag1Diff == 0 ) {
+		GebTag1Tage.postUpdate("heute")
+	} else if ( varGebTag1Diff == 1 ) {
+		GebTag1Tage.postUpdate("morgen")
+	} else {
+		GebTag1Tage.postUpdate(String::format("(%1$d T.)", varGebTag1Diff))
+	}
+	//GebTag2
+	val DateTime varGebTag2Datum = new DateTime((GebTag2Datum.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long varGebTag2Diff = Math::round((varGebTag2Datum.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	if ( varGebTag2Diff == 0 ) {
+		GebTag2Tage.postUpdate("heute")
+	} else if ( varGebTag2Diff == 1 ) {
+		GebTag2Tage.postUpdate("morgen")
+	} else {
+		GebTag2Tage.postUpdate(String::format("(%1$d T.)", varGebTag2Diff))
+	}
+	//GebTag3
+	val DateTime varGebTag3Datum = new DateTime((GebTag3Datum.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long varGebTag3Diff = Math::round((varGebTag3Datum.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	if ( varGebTag3Diff == 0 ) {
+		GebTag3Tage.postUpdate("heute")
+	} else if ( varGebTag3Diff == 1 ) {
+		GebTag3Tage.postUpdate("morgen")
+	} else {
+		GebTag3Tage.postUpdate(String::format("(%1$d T.)", varGebTag3Diff))
+	}
+	//GebTag4
+	val DateTime varGebTag4Datum = new DateTime((GebTag4Datum.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long varGebTag4Diff = Math::round((varGebTag4Datum.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	if ( varGebTag4Diff == 0 ) {
+		GebTag4Tage.postUpdate("heute")
+	} else if ( varGebTag4Diff == 1 ) {
+		GebTag4Tage.postUpdate("morgen")
+	} else {
+		GebTag4Tage.postUpdate(String::format("(%1$d T.)", varGebTag4Diff))
+	}	
+end
