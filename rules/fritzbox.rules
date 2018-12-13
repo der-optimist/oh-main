@@ -1,0 +1,58 @@
+rule "Generate Call Overview - Call"
+when
+   Item fboxIncomingCall changed or
+   Item fboxOutgoingCall changed
+then
+   if (fboxIncomingCall.state.toString.isEmpty && fboxOutgoingCall.state.toString.isEmpty) {
+     executeCommandLine("/etc/openhab2/scripts/fritzbox.sh update", 30000)
+   }
+end
+
+rule "Generate Call Overview - Time"
+when
+   Time cron "0 38 * 1/1 * ? *"
+then
+   executeCommandLine("/etc/openhab2/scripts/fritzbox.sh update", 30000)
+end
+
+rule "Play recorded call"
+when
+   Item AbMessage received command
+then
+   if (receivedCommand.toString == "1") {
+      playSound(Nachricht_1_Datei.state.toString +".wav")
+	  executeCommandLine("/etc/openhab2/scripts/fritzbox.sh mark " + Nachricht_1_Datei.state.toString + ".wav")
+   }
+   if (receivedCommand.toString == "2") {
+      playSound(Nachricht_2_Datei.state.toString +".wav")
+	  executeCommandLine("/etc/openhab2/scripts/fritzbox.sh mark " + Nachricht_2_Datei.state.toString + ".wav")
+   }
+   if (receivedCommand.toString == "3") {
+      playSound(Nachricht_3_Datei.state.toString +".wav")
+	  executeCommandLine("/etc/openhab2/scripts/fritzbox.sh mark " + Nachricht_3_Datei.state.toString + ".wav")
+   }
+   if (receivedCommand.toString == "4") {
+      playSound(Nachricht_4_Datei.state.toString +".wav")
+	  executeCommandLine("/etc/openhab2/scripts/fritzbox.sh mark " + Nachricht_4_Datei.state.toString + ".wav")
+   }
+   
+end
+
+rule "Restart PowerLine via 433MHz"
+when
+   Item Google changed from ON to OFF
+then
+   logInfo("fritzbox.rules", "Starte Powerline neu")
+   executeCommandLine("/home/openhabian/src/433Utils/RPi_utils/codesend 87124 1 324")
+   Thread::sleep(5000)
+   executeCommandLine("/home/openhabian/src/433Utils/RPi_utils/codesend 87124 1 324")
+   logInfo("fritzbox.rules", "Powerline sollte gleich wieder gehen")
+   Thread::sleep(180000)
+   while (Google.state.toString == "OFF") {
+	  executeCommandLine("/home/openhabian/src/433Utils/RPi_utils/codesend 87124 1 324")
+	  logInfo("fritzbox.rules", "Powerline geht wohl noch nicht - neuer Versuch")
+	  Thread::sleep(180000)
+   }
+//   sendTelegram("haus_an_jochen_bot", "Hab Powerline neu gestartet")
+end
+
