@@ -1,0 +1,11 @@
+rule "Startup Delay" 
+when
+	System started 
+then
+	//T_Abstellraum_ist.postUpdate(19.0)
+	DelayedStartup.postUpdate(OFF)
+	Thread::sleep(30000)
+	DelayedStartup.postUpdate(ON)
+	sendTelegram("haus_an_jochen_bot", "[Info] Openhab neu gestartet")
+end
+
