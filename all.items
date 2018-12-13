@@ -1,0 +1,325 @@
+/* Gruppen */
+Group gHaus
+// Location perspective
+	Group gErdgeschoss  (gHaus)
+		Group gWohnzimmer   (gErdgeschoss)
+// Functional perspective
+	Group gSensoren      (gHaus)
+		Group gTemperaturen  (gSensoren)
+			Group gTempSet       (gTemperaturen)
+			Group gTempOffset    (gTemperaturen)
+			Group gTempMess      (gTemperaturen)
+			Group gTempOnline    (gTemperaturen)
+		Group gLuftfeuchte   (gSensoren)
+			Group gLuftfMess     (gLuftfeuchte)
+			Group gLuftfOnline   (gLuftfeuchte)
+			Group gLuftfBerechn  (gLuftfeuchte)
+	Group gHeizung       (gHaus)
+		Group gHeizPWM       (gHeizung)
+	Group gAbfall        (gHaus)
+Group gWetter
+	Group gWarnungen     (gWetter)
+		Group gWarnUnwetter  (gWarnungen)
+		Group gWarnPollen    (gWarnungen)
+	Group gWettervorhersage (gWetter)
+Group gAstro
+Group gAnrufe (gHaus)
+Group gGeburtstage
+Group gErinnerungen
+Group gDateipfade
+
+/* Startup */
+Switch DelayedStartup
+
+/* Telegram */
+String TelegramMenuCommandString { mqtt="<[broker1:TelegramMenuCommand:state:default]" }
+
+/* Temperatur-Sensoren */
+Number T_WZ_ist "T ist Wohnzimmer [%.1f °C]" (gTempMess) { onewire="deviceId=28.FFBE5A601703;propertyName=temperature12;refreshinterval=300;ignore85CPowerOnResetValues" }
+Number T_SZ_ist "T ist Schlafzimmer [%.1f °C]" (gTempSet)
+
+/* Temperatur-Sollwerte */
+Number T_WZ_soll "T soll Wohnzimmer [%.1f °C]" (gTempSet)
+Number T_SZ_soll "T soll Schlafzimmer [%.1f °C]" (gTempSet)
+
+/* Temperatur-Offsetwerte */
+Number T_WZ_offset "T Offset Wohnzimmer [%.1f °C]" (gTempOffset)
+Number T_SZ_offset "T Offset Schlafzimmer [%.1f °C]" (gTempOffset)
+
+/* Heizung - PWM Ventile */
+Number Heiz_WZ_pwm "Heiz PWM Wohnzimmer [%.0f]" (gHeizPWM)
+Number Heiz_SZ_pwm "Heiz PWM Wohnzimmer [%.0f]" (gHeizPWM)
+
+/* Keller lueften */
+Number T_Abstellraum_ist "T ist Abstellr. [%.1f °C]" (gTempSet)
+Number LuftfeuchtigkeitKellerNachLueften "Feuchte Keller nach Lüften [%d %%]" (gLuftfBerechn)
+String EmpfehlungKellerLueften "Keller lüften? [%s]"
+
+/* Pfad Items */
+String MeteogrammPfad (gDateipfade)
+String DiagrammTempPfad (gDateipfade)
+String DiagrammInternetPfad (gDateipfade)
+
+/* Wettervorhersage DWD - Tabelle */
+/* Stunden-Vorhersage*/
+String DWD_Vorhersage_h_Zeit_0 (gWettervorhersage)
+String DWD_Vorhersage_h_Zeit_1 (gWettervorhersage)
+String DWD_Vorhersage_h_Zeit_2 (gWettervorhersage)
+String DWD_Vorhersage_h_Zeit_3 (gWettervorhersage)
+String DWD_Vorhersage_h_Zeit_4 (gWettervorhersage)
+String DWD_Vorhersage_h_Zeit_5 (gWettervorhersage)
+String DWD_Vorhersage_h_Zeit_6 (gWettervorhersage)
+String DWD_Vorhersage_h_Zeit_7 (gWettervorhersage)
+Number DWD_Vorhersage_h_Temp_0 (gWettervorhersage)
+Number DWD_Vorhersage_h_Temp_1 (gWettervorhersage)
+Number DWD_Vorhersage_h_Temp_2 (gWettervorhersage)
+Number DWD_Vorhersage_h_Temp_3 (gWettervorhersage)
+Number DWD_Vorhersage_h_Temp_4 (gWettervorhersage)
+Number DWD_Vorhersage_h_Temp_5 (gWettervorhersage)
+Number DWD_Vorhersage_h_Temp_6 (gWettervorhersage)
+Number DWD_Vorhersage_h_Temp_7 (gWettervorhersage)
+Number DWD_Vorhersage_h_Temp_max (gWettervorhersage)
+Number DWD_Vorhersage_h_Temp_min (gWettervorhersage)
+Number DWD_Vorhersage_h_Regen_0 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regen_1 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regen_2 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regen_3 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regen_4 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regen_5 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regen_6 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regen_7 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regenwahrscheinlichkeit_0 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regenwahrscheinlichkeit_1 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regenwahrscheinlichkeit_2 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regenwahrscheinlichkeit_3 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regenwahrscheinlichkeit_4 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regenwahrscheinlichkeit_5 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regenwahrscheinlichkeit_6 (gWettervorhersage)
+Number DWD_Vorhersage_h_Regenwahrscheinlichkeit_7 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wolken_0 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wolken_1 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wolken_2 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wolken_3 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wolken_4 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wolken_5 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wolken_6 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wolken_7 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wind_0 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wind_1 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wind_2 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wind_3 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wind_4 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wind_5 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wind_6 (gWettervorhersage)
+Number DWD_Vorhersage_h_Wind_7 (gWettervorhersage)
+Number DWD_Vorhersage_h_maxWind_0 (gWettervorhersage)
+Number DWD_Vorhersage_h_maxWind_1 (gWettervorhersage)
+Number DWD_Vorhersage_h_maxWind_2 (gWettervorhersage)
+Number DWD_Vorhersage_h_maxWind_3 (gWettervorhersage)
+Number DWD_Vorhersage_h_maxWind_4 (gWettervorhersage)
+Number DWD_Vorhersage_h_maxWind_5 (gWettervorhersage)
+Number DWD_Vorhersage_h_maxWind_6 (gWettervorhersage)
+Number DWD_Vorhersage_h_maxWind_7 (gWettervorhersage)
+Number DWD_Vorhersage_h_Taupunkt_0 (gWettervorhersage)
+Number DWD_Vorhersage_h_Taupunkt_1 (gWettervorhersage)
+Number DWD_Vorhersage_h_Taupunkt_2 (gWettervorhersage)
+Number DWD_Vorhersage_h_Taupunkt_3 (gWettervorhersage)
+Number DWD_Vorhersage_h_Taupunkt_4 (gWettervorhersage)
+Number DWD_Vorhersage_h_Taupunkt_5 (gWettervorhersage)
+Number DWD_Vorhersage_h_Taupunkt_6 (gWettervorhersage)
+Number DWD_Vorhersage_h_Taupunkt_7 (gWettervorhersage)
+Number DWD_Vorhersage_h_Luftfeuchtigkeit_0 (gWettervorhersage)
+Number DWD_Vorhersage_h_Luftfeuchtigkeit_1 (gWettervorhersage)
+Number DWD_Vorhersage_h_Luftfeuchtigkeit_2 (gWettervorhersage)
+Number DWD_Vorhersage_h_Luftfeuchtigkeit_3 (gWettervorhersage)
+Number DWD_Vorhersage_h_Luftfeuchtigkeit_4 (gWettervorhersage)
+Number DWD_Vorhersage_h_Luftfeuchtigkeit_5 (gWettervorhersage)
+Number DWD_Vorhersage_h_Luftfeuchtigkeit_6 (gWettervorhersage)
+Number DWD_Vorhersage_h_Luftfeuchtigkeit_7 (gWettervorhersage)
+String DWD_Vorhersage_h_Icon_0 (gWettervorhersage)
+String DWD_Vorhersage_h_Icon_1 (gWettervorhersage)
+String DWD_Vorhersage_h_Icon_2 (gWettervorhersage)
+String DWD_Vorhersage_h_Icon_3 (gWettervorhersage)
+String DWD_Vorhersage_h_Icon_4 (gWettervorhersage)
+String DWD_Vorhersage_h_Icon_5 (gWettervorhersage)
+String DWD_Vorhersage_h_Icon_6 (gWettervorhersage)
+String DWD_Vorhersage_h_Icon_7 (gWettervorhersage)
+String DWD_Vorhersage_h_TagNacht_0 (gWettervorhersage)
+String DWD_Vorhersage_h_TagNacht_1 (gWettervorhersage)
+String DWD_Vorhersage_h_TagNacht_2 (gWettervorhersage)
+String DWD_Vorhersage_h_TagNacht_3 (gWettervorhersage)
+String DWD_Vorhersage_h_TagNacht_4 (gWettervorhersage)
+String DWD_Vorhersage_h_TagNacht_5 (gWettervorhersage)
+String DWD_Vorhersage_h_TagNacht_6 (gWettervorhersage)
+String DWD_Vorhersage_h_TagNacht_7 (gWettervorhersage)
+/*Tages-Vorhersage*/
+String DWD_Vorhersage_d_Tag_2 (gWettervorhersage)
+String DWD_Vorhersage_d_Tag_3 (gWettervorhersage)
+String DWD_Vorhersage_d_Tag_4 (gWettervorhersage)
+String DWD_Vorhersage_d_Tag_5 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmax_0 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmax_1 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmax_2 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmax_3 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmax_4 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmax_5 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmax_max (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmin_0 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmin_1 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmin_2 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmin_3 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmin_4 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmin_5 (gWettervorhersage)
+Number DWD_Vorhersage_d_Tempmin_min (gWettervorhersage)
+Number DWD_Vorhersage_d_Regen_0 (gWettervorhersage)
+Number DWD_Vorhersage_d_Regen_1 (gWettervorhersage)
+Number DWD_Vorhersage_d_Regen_2 (gWettervorhersage)
+Number DWD_Vorhersage_d_Regen_3 (gWettervorhersage)
+Number DWD_Vorhersage_d_Regen_4 (gWettervorhersage)
+Number DWD_Vorhersage_d_Regen_5 (gWettervorhersage)
+Number DWD_Vorhersage_d_Regenwahrscheinlichkeit_0 (gWettervorhersage)
+Number DWD_Vorhersage_d_Regenwahrscheinlichkeit_1 (gWettervorhersage)
+Number DWD_Vorhersage_d_Regenwahrscheinlichkeit_2 (gWettervorhersage)
+Number DWD_Vorhersage_d_Regenwahrscheinlichkeit_3 (gWettervorhersage)
+Number DWD_Vorhersage_d_Regenwahrscheinlichkeit_4 (gWettervorhersage)
+Number DWD_Vorhersage_d_Regenwahrscheinlichkeit_5 (gWettervorhersage)
+Number DWD_Vorhersage_d_Wolken_0 (gWettervorhersage)
+Number DWD_Vorhersage_d_Wolken_1 (gWettervorhersage)
+Number DWD_Vorhersage_d_Wolken_2 (gWettervorhersage)
+Number DWD_Vorhersage_d_Wolken_3 (gWettervorhersage)
+Number DWD_Vorhersage_d_Wolken_4 (gWettervorhersage)
+Number DWD_Vorhersage_d_Wolken_5 (gWettervorhersage)
+Number DWD_Vorhersage_d_Sonnenstunden_0 (gWettervorhersage)
+Number DWD_Vorhersage_d_Sonnenstunden_1 (gWettervorhersage)
+Number DWD_Vorhersage_d_Sonnenstunden_2 (gWettervorhersage)
+Number DWD_Vorhersage_d_Sonnenstunden_3 (gWettervorhersage)
+Number DWD_Vorhersage_d_Sonnenstunden_4 (gWettervorhersage)
+Number DWD_Vorhersage_d_Sonnenstunden_5 (gWettervorhersage)
+Number DWD_Vorhersage_d_SonnenstundenProzent_0 (gWettervorhersage)
+Number DWD_Vorhersage_d_SonnenstundenProzent_1 (gWettervorhersage)
+Number DWD_Vorhersage_d_SonnenstundenProzent_2 (gWettervorhersage)
+Number DWD_Vorhersage_d_SonnenstundenProzent_3 (gWettervorhersage)
+Number DWD_Vorhersage_d_SonnenstundenProzent_4 (gWettervorhersage)
+Number DWD_Vorhersage_d_SonnenstundenProzent_5 (gWettervorhersage)
+String DWD_Vorhersage_d_Icon_0 (gWettervorhersage)
+String DWD_Vorhersage_d_Icon_1 (gWettervorhersage)
+String DWD_Vorhersage_d_Icon_2 (gWettervorhersage)
+String DWD_Vorhersage_d_Icon_3 (gWettervorhersage)
+String DWD_Vorhersage_d_Icon_4 (gWettervorhersage)
+String DWD_Vorhersage_d_Icon_5 (gWettervorhersage)
+/* Wetter OWM */
+Number TempAktuellOWM "Temp draussen [%.1f °C]" (gTempOnline) {weather="locationId=home-owm, type=temperature, property=current"}
+Number TempAktuellOWMfeel "Temp gef [%.1f °C]" (gTempOnline) {weather="locationId=home-owm, type=temperature, property=feel"}
+Number LuftfeuchtigkeitOWM "Feuchte draussen [%d %%]" (gLuftfOnline) {weather="locationId=home-owm, type=atmosphere, property=humidity"}
+/* Wetter ForecastIO */
+Number TempAktuellFIO "Temp draussen [%.1f °C]" (gTempOnline) {weather="locationId=home-fio, type=temperature, property=current"}
+Number TempAktuellFIOfeel "Temp gef [%.1f °C]" (gTempOnline) {weather="locationId=home-fio, type=temperature, property=feel"}
+Number LuftfeuchtigkeitFIO "Feuchte draussen [%d %%]" (gLuftfOnline) {weather="locationId=home-fio, type=atmosphere, property=humidity"}
+Number TempMinHeuteFIO	"Temp heute min [%.1f °C]" (gTempOnline) {weather="locationId=home-fio, forecast=0, type=temperature, property=min"}
+Number TempMaxHeuteFIO	"Temp heute max [%.1f °C]" (gTempOnline) {weather="locationId=home-fio, forecast=0, type=temperature, property=max"}
+Number TempMinMorgenFIO	"Temp morgen min [%.1f °C]" (gTempOnline) {weather="locationId=home-fio, forecast=1, type=temperature, property=min"}
+Number TempMaxMorgenFIO	"Temp morgen max [%.1f °C]" (gTempOnline) {weather="locationId=home-fio, forecast=1, type=temperature, property=max"}
+/* Pollen */
+String Pollen_today "Eiche heute [%s]" (gWarnPollen)
+String Pollen_tomorrow "Eiche morgen [%s]" (gWarnPollen)
+/* Wetterwarnungen */
+String DWD_Warnung_1_Event "DWD Warn 1 Event [%s]" (gWarnUnwetter)
+String DWD_Warnung_2_Event "DWD Warn 2 Event [%s]" (gWarnUnwetter)
+String DWD_Warnung_3_Event "DWD Warn 3 Event [%s]" (gWarnUnwetter)
+String DWD_Warnung_1_Severity "DWD Warn 1 Severity [%s]" (gWarnUnwetter)
+String DWD_Warnung_2_Severity "DWD Warn 2 Severity [%s]" (gWarnUnwetter)
+String DWD_Warnung_3_Severity "DWD Warn 3 Severity [%s]" (gWarnUnwetter)
+DateTime DWD_Warnung_1_Start "DWD Warn 1 Start [%1$td.%1$tm %1$tH:%1$tM]" (gWarnUnwetter)
+DateTime DWD_Warnung_2_Start "DWD Warn 2 Start [%1$td.%1$tm %1$tH:%1$tM]" (gWarnUnwetter)
+DateTime DWD_Warnung_3_Start "DWD Warn 3 Start [%1$td.%1$tm %1$tH:%1$tM]" (gWarnUnwetter)
+DateTime DWD_Warnung_1_End "DWD Warn 1 End [%1$td.%1$tm %1$tH:%1$tM]" (gWarnUnwetter)
+DateTime DWD_Warnung_2_End "DWD Warn 2 End [%1$td.%1$tm %1$tH:%1$tM]" (gWarnUnwetter)
+DateTime DWD_Warnung_3_End "DWD Warn 3 End [%1$td.%1$tm %1$tH:%1$tM]" (gWarnUnwetter)
+String DWD_Warnung_1_Group "DWD Warn 1 Group [%s]" (gWarnUnwetter)
+String DWD_Warnung_2_Group "DWD Warn 2 Group [%s]" (gWarnUnwetter)
+String DWD_Warnung_3_Group "DWD Warn 3 Group [%s]" (gWarnUnwetter)
+String DWD_Warnung_1_Parameter "DWD Warn 1 Param [%s]" (gWarnUnwetter)
+String DWD_Warnung_2_Parameter "DWD Warn 2 Param [%s]" (gWarnUnwetter)
+String DWD_Warnung_3_Parameter "DWD Warn 3 Param [%s]" (gWarnUnwetter)
+String DWD_Warnung_1_Start_lesbar "DWD Warn 1 Start lb [%s]" (gWarnUnwetter)
+String DWD_Warnung_2_Start_lesbar "DWD Warn 2 Start lb [%s]" (gWarnUnwetter)
+String DWD_Warnung_3_Start_lesbar "DWD Warn 3 Start lb [%s]" (gWarnUnwetter)
+String DWD_Warnung_1_End_lesbar "DWD Warn 1 End lb [%s]" (gWarnUnwetter)
+String DWD_Warnung_2_End_lesbar "DWD Warn 2 End lb [%s]" (gWarnUnwetter)
+String DWD_Warnung_3_End_lesbar "DWD Warn 3 End lb [%s]" (gWarnUnwetter)
+String DWD_Warnung_Max_Severity "DWD Warn Max Severity [%s]" (gWarnUnwetter)
+
+/* Astro */
+Number Sun_Azimuth "Sun Azimuth" (gAstro) { channel="astro:sun:local:position#azimuth" }
+Number Sun_Elevation "Sun Elevation" (gAstro) { channel="astro:sun:local:position#elevation" }
+Number Sunrise_Azimuth (gAstro)
+Number Sunset_Azimuth (gAstro)
+DateTime Sonnenaufgang_Ende "Sonnenaufgang [%1$tH:%1$tM]" (gAstro) { channel="astro:sun:local:rise#end" }
+DateTime Sonnenuntergang_Anfang "Sonnenuntergang [%1$tH:%1$tM]" (gAstro) { channel="astro:sun:local:set#start" }
+Number Sonnenscheindauer_max "maximale Sonnenscheindauer [%.1f °C]" (gAstro)
+
+/* Abfall-Kalender */
+DateTime Restmuell "Restmüll [%1$td.%1$tm.%1$tY]" <calendar> (gAbfall) { caldavPersonal="calendar:Muellkalender type:EVENT eventNr:1 value:START filter-name:'Restmuelltonne'" }
+DateTime Biomuell "Biomüll [%1$td.%1$tm.%1$tY]" <calendar> (gAbfall) { caldavPersonal="calendar:Muellkalender type:EVENT eventNr:1 value:START filter-name:'Biotonne'" }
+DateTime Papiermuell "Papier [%1$td.%1$tm.%1$tY]" <calendar> (gAbfall) { caldavPersonal="calendar:Muellkalender type:EVENT eventNr:1 value:START filter-name:'Papiertonne'" }
+DateTime RaWeg "RaWeg [%1$td.%1$tm.%1$tY]" <calendar> (gAbfall) { caldavPersonal="calendar:Muellkalender type:EVENT eventNr:1 value:START filter-name:'RaWeg'" }
+DateTime Abfall_1_Datum "Abfall 1 Datum [%1$td.%1$tm.%1$tY]" <calendar> (gAbfall)
+DateTime Abfall_2_Datum "Abfall 2 Datum [%1$td.%1$tm.%1$tY]" <calendar> (gAbfall)
+DateTime Abfall_3_Datum "Abfall 3 Datum [%1$td.%1$tm.%1$tY]" <calendar> (gAbfall)
+DateTime Abfall_4_Datum "Abfall 4 Datum [%1$td.%1$tm.%1$tY]" <calendar> (gAbfall)
+String Abfall_1_Art "Abfall 1 Art [%s]" (gAbfall)
+String Abfall_2_Art "Abfall 2 Art [%s]" (gAbfall)
+String Abfall_3_Art "Abfall 3 Art [%s]" (gAbfall)
+String Abfall_4_Art "Abfall 4 Art [%s]" (gAbfall)
+String RestmuellTage "Restmüll [%s]" (gAbfall)
+String BiomuellTage "Biomüll [%s]" (gAbfall)
+String PapiermuellTage "Papier [%s]" (gAbfall)
+String RaWegTage "RaWeg [%s]" (gAbfall)
+String Abfall_1_Tage "Abfall 1 Tage [%s]" (gAbfall)
+String Abfall_2_Tage "Abfall 2 Tage [%s]" (gAbfall)
+String Abfall_3_Tage "Abfall 3 Tage [%s]" (gAbfall)
+String Abfall_4_Tage "Abfall 4 Tage [%s]" (gAbfall)
+Switch Abfall_Steht_An "Abfall steht an" (gAbfall)
+
+/* Geburtstags-Kalender */
+DateTime GebTag1Datum "GebTag1Datum [%1$td.%1$tm.%1$tY]" <calendar> (gGeburtstage) { caldavPersonal="calendar:Geburtstagskalender type:EVENT eventNr:1 value:START" }
+DateTime GebTag2Datum "GebTag2Datum [%1$td.%1$tm.%1$tY]" <calendar> (gGeburtstage) { caldavPersonal="calendar:Geburtstagskalender type:EVENT eventNr:2 value:START" }
+DateTime GebTag3Datum "GebTag3Datum [%1$td.%1$tm.%1$tY]" <calendar> (gGeburtstage) { caldavPersonal="calendar:Geburtstagskalender type:EVENT eventNr:3 value:START" }
+DateTime GebTag4Datum "GebTag4Datum [%1$td.%1$tm.%1$tY]" <calendar> (gGeburtstage) { caldavPersonal="calendar:Geburtstagskalender type:EVENT eventNr:4 value:START" }
+String GebTag1Name	"GebTag1Name [%s]" <calendar> (gGeburtstage) { caldavPersonal="calendar:Geburtstagskalender type:EVENT eventNr:1 value:NAME" }
+String GebTag2Name	"GebTag1Name [%s]" <calendar> (gGeburtstage) { caldavPersonal="calendar:Geburtstagskalender type:EVENT eventNr:2 value:NAME" }
+String GebTag3Name	"GebTag1Name [%s]" <calendar> (gGeburtstage) { caldavPersonal="calendar:Geburtstagskalender type:EVENT eventNr:3 value:NAME" }
+String GebTag4Name	"GebTag1Name [%s]" <calendar> (gGeburtstage) { caldavPersonal="calendar:Geburtstagskalender type:EVENT eventNr:4 value:NAME" }
+String GebTag1Tage "GebTag1 [%s]" (gGeburtstage)
+String GebTag2Tage "GebTag1 [%s]" (gGeburtstage)
+String GebTag3Tage "GebTag1 [%s]" (gGeburtstage)
+String GebTag4Tage "GebTag1 [%s]" (gGeburtstage)
+
+/* Fritzbox */
+String fboxDslStatus "FBox DSL Status [%s]" {fritzboxtr064="dslStatus"}
+String AbMessage
+String ListDate
+Call   fboxIncomingCall    "Incoming call: [%1$s to %2$s]" (gAnrufe) {fritzboxtr064="callmonitor_ringing" } 
+Call   fboxOutgoingCall    "Outgoing call: [%1$s to %2$s]" (gAnrufe) {fritzboxtr064="callmonitor_outgoing" }
+Switch Google { channel="network:pingdevice:GoogleOnline:online" }
+String Anruf_1_Name "Anruf 1 Name [%s]" (gAnrufe)
+String Anruf_2_Name "Anruf 2 Name [%s]" (gAnrufe)
+String Anruf_3_Name "Anruf 3 Name [%s]" (gAnrufe)
+String Anruf_4_Name "Anruf 4 Name [%s]" (gAnrufe)
+String Anruf_1_DatumZeit "Anruf 1 Zeit [%s]" (gAnrufe)
+String Anruf_2_DatumZeit "Anruf 2 Zeit [%s]" (gAnrufe)
+String Anruf_3_DatumZeit "Anruf 3 Zeit [%s]" (gAnrufe)
+String Anruf_4_DatumZeit "Anruf 4 Zeit [%s]" (gAnrufe)
+String Nachricht_1_Datei "Nachricht 1 Datei [%s]" (gAnrufe)
+String Nachricht_2_Datei "Nachricht 2 Datei [%s]" (gAnrufe)
+String Nachricht_3_Datei "Nachricht 3 Datei [%s]" (gAnrufe)
+String Nachricht_4_Datei "Nachricht 4 Datei [%s]" (gAnrufe)
+Switch Nachricht_1_Neu "Nachricht 1 Neu" (gAnrufe)
+Switch Nachricht_2_Neu "Nachricht 2 Neu" (gAnrufe)
+Switch Nachricht_3_Neu "Nachricht 3 Neu" (gAnrufe)
+Switch Nachricht_4_Neu "Nachricht 4 Neu" (gAnrufe)
+
+/* Erinnerungen */
+Switch Erinnerung_Kaffeemaschine "Kaffeemaschine reinigen" (gErinnerungen)
+Switch Erinnerung_Blumen_drin "Blumen drin düngen" (gErinnerungen)
+Switch Erinnerung_Blumen_draussen "Blumen draußen düngen" (gErinnerungen)
