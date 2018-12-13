@@ -1,0 +1,137 @@
+rule "Keller lueften"
+when 
+	Item TempAktuellOWM changed or
+	Item LuftfeuchtigkeitOWM changed or
+	Item T_Abstellraum_ist changed or
+	Item DelayedStartup changed from OFF to ON
+then
+/* ------------------------------------------------------------------------------------------------------ 
+ * 
+ * Berechnung des Taupunktes für eine gegebene Temperatur und Luftfeuchtigkeit
+ * 
+ * Beschreibung:
+ * Die Luft ist ein Gemisch verschiedener Gase. Eines dieser Gase ist der Wasserdampf. Die Menge an 
+ * Wasserdampf, die in der Luft enthalten sein kann, ist allerdings begrenzt. Je wärmer die Luft ist, 
+ * desto mehr Wasserdampf kann in ihr enthalten sein.
+ * 
+ * Die relative Luftfeuchtigkeit gibt an, wie viel Prozent des maximalen Wasserdampfgehaltes die Luft 
+ * im Augenblick enthält. Da der maximale Wasserdampfgehalt mit steigender Temperatur ansteigt, 
+ * fällt die relative Luftfeuchtigkeit mit steigender Temperatur (und umgekehrt).
+ * 
+ * Die Taupunkttemperatur ist definiert als die Temperatur, bei der der aktuelle Wasserdampfgehalt in 
+ * der Luft der maximale (100% relative Luftfeuchtigkeit) ist. Die Taupunkttemperatur ist damit eine von 
+ * der aktuellen Temperatur unabhängige Größe. Eine Möglichkeit die Taupunkttemperatur zu messen 
+ * ist das Abkühlen von Metall bis sich die Oberfläche mit Wasserdampf beschlägt. Dann ist die 
+ * Temperatur des Metalls die Taupunkttemperatur.
+ * 
+ * Es gibt keine exakte Formel zur Umrechnung der Taupunkttemperatur in die relative Luftfeuchtigkeit. 
+ * Zur Erstellung des Taupunktrechners habe ich eine einfache Näherungsformel benutzt. Eine exakte 
+ * Umrechnung ist nur mit experimentell ermittelten Tabellen möglich.
+ * 
+ * Aus Temperatur und relativer Luftfeuchte bzw. Temperatur und Taupunkt lässt sich auch der 
+ * absolute Feuchtegehalt der Luft in Gramm Wasserdampf pro Kubikmeter ausrechnen.
+ * 
+ * Formeln:
+ * Die Grundlage der Berechnungen ist die Näherungsformel für den Sättigungsdampfdruck ( Gleichung 1 ), 
+ * die sogenannte Magnusformel. Die relative Luftfeuchtigkeit ist definiert als das Verhältnis vom 
+ * augenblicklichen Dampfdruck zum Sättigungsdampfdruck (umgeformte Gleichung 2). Bei der 
+ * Taupunkttemperatur ist definitionsgemäß der Sättigungsdampfdruck gleich dem aktuellen Dampfdruck. 
+ * Aus diesen beiden Definitionen folgt unmittelbar Gleichung 3, die Formel zur Berechnung der 
+ * relativen Luftfeuchtigkeit aus der Taupunkttemperatur. Die 4. Gleichung beschreibt umgekehrt die 
+ * Berechnung der Taupunkttemperatur aus der relativen Luftfeuchtigkeit und der aktuellen Temperatur. 
+ * Diese 4. Gleichung ist im Grunde nichts anderes als die nach T aufgelöste 1. Gleichung , wobei für 
+ * den Sättigungsdampfdruck der aktuelle Dampfdruck (und nicht der aktuelle Sättigungsdampfdruck) 
+ * eingesetzt wird, so dass die Taupunkttemperatur und nicht die normale Temperatur als Ergebnis 
+ * herauskommt. Aus der allgemeinen Gasgleichung ergibt sich die 5. Gleichung .
+ * 
+ * Bezeichnungen:
+ * r = relative Luftfeuchte
+ * T = Temperatur in °C
+ * TK = Temperatur in Kelvin (TK = T + 273.15)
+ * TD = Taupunkttemperatur in °C
+ * DD = Dampfdruck in hPa
+ * SDD = Sättigungsdampfdruck in hPa
+ * 
+ * Parameter:
+ * a = 7.5, b = 237.3 für T >= 0
+ * a = 7.6, b = 240.7 für T < 0 über Wasser (Taupunkt)
+ * a = 9.5, b = 265.5 für T < 0 über Eis (Frostpunkt)
+ * 
+ * R* = 8314.3 J/(kmol*K) (universelle Gaskonstante)
+ * mw = 18.016 kg/kmol (Molekulargewicht des Wasserdampfes)
+ * AF = absolute Feuchte in g Wasserdampf pro m3 Luft
+ * 
+ * Formeln:
+ * SDD(T) = 6.1078 * 10^((a*T)/(b+T))
+ * DD(r,T) = r/100 * SDD(T)
+ * r(T,TD) = 100 * SDD(TD) / SDD(T)
+ * TD(r,T) = b*v/(a-v) mit v(r,T) = log10(DD(r,T)/6.1078)
+ * AF(r,TK) = 10^5 * mw/R* * DD(r,T)/TK; AF(TD,TK) = 10^5 * mw/R* * SDD(TD)/TK
+ * 
+ * Quelle: http://www.wetterochs.de/wetter/feuchte.html
+ * 
+ * Danke an Stefan Ochs von www.wetterochs.de
+ * 
+ * ------------------------------------------------------------------------------------------------------ */
+	//logInfo("all.rules", "Berechne Lueften Keller")
+	var double t_out = (TempAktuellFIO.state as DecimalType).doubleValue
+	var double t_in = (T_Abstellraum_ist.state as DecimalType).doubleValue
+	var double r_out = (LuftfeuchtigkeitFIO.state as DecimalType).doubleValue
+    var double a_out
+	var double a_in
+    var double b_out
+	var double b_in
+    var double SDD_TD_out
+	var double SDD_T_out
+	var double SDD_T_in
+    var double DD_out
+    var double v_out
+    var double TD_out
+	var double r_in
+	var String varEmpfehlungKellerLueften
+	
+	//logInfo("all.rules", "Var Temp: " +t_out)
+	//logInfo("all.rules", "Var humid: " +r_out)
+    
+    if (t_out >= 0.0){ // T >= 0 °C
+        a_out = 7.5
+        b_out = 237.3
+    } else { // T < 0 °C über Wasser
+        a_out = 7.6
+        b_out = 240.7
+    }
+	a_in = 7.5
+	b_in = 237.3
+    SDD_T_out=(6.1078 * Math::pow(10.0, ((a_out*t_out)/(b_out+t_out)).doubleValue)).doubleValue
+    DD_out = (r_out/100*SDD_T_out).doubleValue
+    v_out = Math::log10((DD_out/6.107).doubleValue)
+    TD_out = ((b_out*v_out)/(a_out-v_out)).doubleValue
+	//logInfo("all.rules", "Taupunkt aussen: " +TD_out)
+	SDD_TD_out=(6.1078 * Math::pow(10.0, ((a_out*TD_out)/(b_out+TD_out)).doubleValue)).doubleValue
+	SDD_T_in=(6.1078 * Math::pow(10.0, ((a_in*t_in)/(b_in+t_in)).doubleValue)).doubleValue
+	r_in = (Math::round(100*SDD_TD_out/SDD_T_in)).doubleValue
+	if (r_in > 100.0) { // Werte über 100% sehen einfach blöd aus
+		r_in = 100.0
+	}
+	
+	LuftfeuchtigkeitKellerNachLueften.postUpdate(r_in)
+	
+	if (r_in <= 55.0) {
+		varEmpfehlungKellerLueften = "wäre gut"
+	} else if (r_in <= 65.0) {
+		varEmpfehlungKellerLueften = "wenn drin ü. 70%"
+	} else {
+		varEmpfehlungKellerLueften = "nein"
+	}
+	EmpfehlungKellerLueften.postUpdate(varEmpfehlungKellerLueften)
+	logInfo("keller_lueften.rules", "Luftf. nach Lüften: " +r_in +"% => " +varEmpfehlungKellerLueften)
+end
+
+/*
+rule "melde Keller lueften Empfehlung"
+when 
+	Item EmpfehlungKellerLueften changed
+then
+	sendTelegram("haus_an_jochen_bot", "Empfehlung Keller lüften: %s", EmpfehlungKellerLueften.state.toString)
+end
+*/
