@@ -1,0 +1,198 @@
+rule "Tage bis Abfall berechnen"
+when 
+	Time cron "0 5 * 1/1 * ? *" or
+	Item Restmuell changed or
+	Item Biomuell changed or
+	Item Papiermuell changed or
+	Item RaWeg changed or
+	Item DelayedStartup changed from OFF to ON
+then
+	logInfo("all.rules", "Tage bis Abfall berechnen")
+	//Restmuell
+	val DateTime varRestmuellDatum = new DateTime((Restmuell.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long varRestmuellDiff = Math::round((varRestmuellDatum.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	if ( varRestmuellDiff == 0 ) {
+		RestmuellTage.postUpdate("heute")
+	} else if ( varRestmuellDiff == 1 ) {
+		RestmuellTage.postUpdate("morgen")
+	} else {
+		RestmuellTage.postUpdate(String::format("(%1$d T.)", varRestmuellDiff))
+	}
+	//Biomuell
+	val DateTime varBiomuellDatum = new DateTime((Biomuell.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long varBiomuellDiff = Math::round((varBiomuellDatum.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	if ( varBiomuellDiff == 0 ) {
+		BiomuellTage.postUpdate("heute")
+	} else if ( varBiomuellDiff == 1 ) {
+		BiomuellTage.postUpdate("morgen")
+	} else {
+		BiomuellTage.postUpdate(String::format("(%1$d T.)", varBiomuellDiff))
+	}
+	//Papiermuell
+	val DateTime varPapiermuellDatum = new DateTime((Papiermuell.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long varPapiermuellDiff = Math::round((varPapiermuellDatum.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	if ( varPapiermuellDiff == 0 ) {
+		PapiermuellTage.postUpdate("heute")
+	} else if ( varPapiermuellDiff == 1 ) {
+		PapiermuellTage.postUpdate("morgen")
+	} else {
+		PapiermuellTage.postUpdate(String::format("(%1$d T.)", varPapiermuellDiff))
+	}
+	//RaWeg
+	val DateTime varRaWegDatum = new DateTime((RaWeg.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long varRaWegDiff = Math::round((varRaWegDatum.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	if ( varRaWegDiff == 0 ) {
+		RaWegTage.postUpdate("heute")
+	} else if ( varRaWegDiff == 1 ) {
+		RaWegTage.postUpdate("morgen")
+	} else {
+		RaWegTage.postUpdate(String::format("(%1$d T.)", varRaWegDiff))
+	}	
+end
+
+rule "Abfalltermine sortieren"
+when
+	Item Restmuell received update or
+	Item Biomuell received update or
+	Item Papiermuell received update or
+	Item RaWeg received update or
+	Item RestmuellTage changed or
+	Item PapiermuellTage changed or
+	Item BiomuellTage changed or
+	Item RaWegTage changed or
+	//Time cron "0 8 0 1/1 * ? *" or
+	Item DelayedStartup changed from OFF to ON
+then
+	Thread::sleep(3000)
+	var DateTime varTempDatum
+	var DateTime varAbfall1Datum = new DateTime((Restmuell.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	var DateTime varAbfall2Datum = new DateTime((Biomuell.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	var DateTime varAbfall3Datum = new DateTime((Papiermuell.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	var DateTime varAbfall4Datum = new DateTime((RaWeg.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	var String varTempArt
+	var String varAbfall1Art = "Restmuell"
+	var String varAbfall2Art = "Biomuell"
+	var String varAbfall3Art = "Papiermuell"
+	var String varAbfall4Art = "RaWeg"
+	var String varTempTage
+	var String varAbfall1Tage = RestmuellTage.state.toString
+	var String varAbfall2Tage = BiomuellTage.state.toString
+	var String varAbfall3Tage = PapiermuellTage.state.toString
+	var String varAbfall4Tage = RaWegTage.state.toString
+	var i = 1
+	while ((i=i+1) < 6) {
+		if (varAbfall1Datum > varAbfall2Datum) {
+			varTempDatum = varAbfall1Datum
+			varAbfall1Datum = varAbfall2Datum
+			varAbfall2Datum = varTempDatum
+			varTempArt = varAbfall1Art
+			varAbfall1Art = varAbfall2Art
+			varAbfall2Art = varTempArt
+			varTempTage = varAbfall1Tage
+			varAbfall1Tage = varAbfall2Tage
+			varAbfall2Tage = varTempTage
+			if (varAbfall2Datum > varAbfall3Datum) {
+				varTempDatum = varAbfall2Datum
+				varAbfall2Datum = varAbfall3Datum
+				varAbfall3Datum = varTempDatum
+				varTempArt = varAbfall2Art
+				varAbfall2Art = varAbfall3Art
+				varAbfall3Art = varTempArt
+				varTempTage = varAbfall2Tage
+				varAbfall2Tage = varAbfall3Tage
+				varAbfall3Tage = varTempTage
+				if (varAbfall3Datum > varAbfall4Datum) {
+					varTempDatum = varAbfall3Datum
+					varAbfall3Datum = varAbfall4Datum
+					varAbfall4Datum = varTempDatum
+					varTempArt = varAbfall3Art
+					varAbfall3Art = varAbfall4Art
+					varAbfall4Art = varTempArt
+					varTempTage = varAbfall3Tage
+					varAbfall3Tage = varAbfall4Tage
+					varAbfall4Tage = varTempTage
+				}
+			}
+		}
+		if (varAbfall2Datum > varAbfall3Datum) {
+				varTempDatum = varAbfall2Datum
+				varAbfall2Datum = varAbfall3Datum
+				varAbfall3Datum = varTempDatum
+				varTempArt = varAbfall2Art
+				varAbfall2Art = varAbfall3Art
+				varAbfall3Art = varTempArt
+				varTempTage = varAbfall2Tage
+				varAbfall2Tage = varAbfall3Tage
+				varAbfall3Tage = varTempTage
+				if (varAbfall3Datum > varAbfall4Datum) {
+					varTempDatum = varAbfall3Datum
+					varAbfall3Datum = varAbfall4Datum
+					varAbfall4Datum = varTempDatum
+					varTempArt = varAbfall3Art
+					varAbfall3Art = varAbfall4Art
+					varAbfall4Art = varTempArt
+					varTempTage = varAbfall3Tage
+					varAbfall3Tage = varAbfall4Tage
+					varAbfall4Tage = varTempTage
+				}
+			}
+		if (varAbfall3Datum > varAbfall4Datum) {
+					varTempDatum = varAbfall3Datum
+					varAbfall3Datum = varAbfall4Datum
+					varAbfall4Datum = varTempDatum
+					varTempArt = varAbfall3Art
+					varAbfall3Art = varAbfall4Art
+					varAbfall4Art = varTempArt
+					varTempTage = varAbfall3Tage
+					varAbfall3Tage = varAbfall4Tage
+					varAbfall4Tage = varTempTage
+				}
+	}
+	Abfall_1_Datum.postUpdate(varAbfall1Datum.toString)
+	Abfall_2_Datum.postUpdate(varAbfall2Datum.toString)
+	Abfall_3_Datum.postUpdate(varAbfall3Datum.toString)
+	Abfall_4_Datum.postUpdate(varAbfall4Datum.toString)
+	Abfall_1_Art.postUpdate(varAbfall1Art)
+	Abfall_2_Art.postUpdate(varAbfall2Art)
+	Abfall_3_Art.postUpdate(varAbfall3Art)
+	Abfall_4_Art.postUpdate(varAbfall4Art)
+	Abfall_1_Tage.postUpdate(varAbfall1Tage)
+	Abfall_2_Tage.postUpdate(varAbfall2Tage)
+	Abfall_3_Tage.postUpdate(varAbfall3Tage)
+	Abfall_4_Tage.postUpdate(varAbfall4Tage)
+end
+
+rule "Abfall steht an - Blinkeding"
+when
+	Time cron "0 0 17 1/1 * ? *"
+then
+	if (Abfall_1_Tage.state.toString == "morgen") {
+	Abfall_Steht_An.postUpdate(ON)
+	}
+end
+
+rule "Abfall steht an - Informiere Jochen"
+when
+	Time cron "0 30 20 1/1 * ? *"
+then
+	if ((Abfall_Steht_An.state == ON) && (Abfall_1_Art.state != "RaWeg")) {
+	sendTelegram("haus_an_jochen_bot", "[Warnung] %s solltest du noch raus stellen", Abfall_1_Art.state.toString)
+	}
+end
+
+rule "Abfall steht an - Informiere Mandy und Jochen"
+when
+	Time cron "0 30 21 1/1 * ? *"
+then
+	if ((Abfall_Steht_An.state == ON) && (Abfall_1_Art.state != "RaWeg")) {
+	sendTelegram("haus_an_jochen_bot", "[Warnung] Oh je, jetzt gibt's Ärger... %s steht wohl immer noch nicht draußen und Mandy tritt dir gleich in den Hintern!", Abfall_1_Art.state.toString)
+	sendTelegram("haus_an_mandy_bot", "[Warnung] %s steht wohl immer noch nicht draußen... So ein Schlumpf, der Jochen", Abfall_1_Art.state.toString)
+	}
+end
+
+rule "Abfall ist vorbei"
+when
+	Time cron "0 0 10 1/1 * ? *"
+then
+	Abfall_Steht_An.postUpdate(OFF)
+end
