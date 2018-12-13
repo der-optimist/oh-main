@@ -1,0 +1,270 @@
+rule "DWD Wettervorhersage"
+when 
+	Time cron "0 0 0/1 1/1 * ? *" or
+	Item DelayedStartup changed from OFF to ON
+then
+	logInfo("astro_wetter.rules", "DWD Wettervorhersage Start")
+	val results = executeCommandLine("/usr/bin/python3@@/etc/openhab2/scripts/dwd_forecast.py", 3500000)
+	logInfo("astro_wetter.rules", results)
+end
+
+rule "DWD Wetterwarnungen"
+when 
+	Time cron "0 0/5 * 1/1 * ? *" or
+	Item DelayedStartup changed from OFF to ON
+then
+	logInfo("astro_wetter.rules", "DWD Wetterwarnungen Start")
+	val results = executeCommandLine("/usr/bin/python3@@/etc/openhab2/scripts/dwd_warnings.py", 120000)
+	logInfo("astro_wetter.rules", results)
+end
+
+rule "Temperatur Telegram"
+when
+	Time cron "0 0 5 ? * MON-FRI *" or
+	Time cron "0 30 6 ? * SAT,SUN *"
+then
+	sendTelegram("haus_an_jochen_bot", "=== ðŸ”¥ Temperaturen â„ï¸ ===\nDrauÃŸen: %.1f\nWohnzimmer: %.1f", (TempAktuellFIO.state as DecimalType).floatValue, (T_WZ_ist.state as DecimalType).floatValue)
+end
+
+rule "Wetterwarnungen lesbarer machen - 1 Start - Change"
+when
+	Item DWD_Warnung_1_Start changed
+then
+	val DateTime Start = new DateTime((DWD_Warnung_1_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	val DateTime Start_Tag = new DateTime((DWD_Warnung_1_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long Diff = Math::round((Start_Tag.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	val String Uhrzeit = Start.toString.substring(11,16)
+	val String Tag = Start.toString.substring(8,10)
+	val String Monat = Start.toString.substring(5,7)
+	if ( Diff == 0 ) {
+		DWD_Warnung_1_Start_lesbar.postUpdate("heute " +Uhrzeit)
+	} else if ( Diff == 1 ) {
+		DWD_Warnung_1_Start_lesbar.postUpdate("morgen " +Uhrzeit)
+	} else if ( Diff == -1 ) {
+		DWD_Warnung_1_Start_lesbar.postUpdate("gestern " +Uhrzeit)
+	} else {
+		DWD_Warnung_1_Start_lesbar.postUpdate(Tag +"." +Monat +". " +Uhrzeit)
+	}
+	Thread::sleep(3000)
+	if (DWD_Warnung_1_Severity.state!="0") {
+		if (DWD_Warnung_1_Event.state=="UV-INDEX") {
+			sendTelegram("haus_an_jochen_bot", "[Info] UV-Warnung\n%s bis \n%s", DWD_Warnung_1_Start_lesbar.state.toString, DWD_Warnung_1_End_lesbar.state.toString)
+		} else {
+			sendTelegram("haus_an_jochen_bot", "[Warnung] %s\n%s bis \n%s\n%s\n[%s]", DWD_Warnung_1_Event.state.toString, DWD_Warnung_1_Start_lesbar.state.toString, DWD_Warnung_1_End_lesbar.state.toString, DWD_Warnung_1_Parameter.state.toString, DWD_Warnung_1_Severity.state.toString)
+		}
+	}
+end
+
+rule "Wetterwarnungen lesbarer machen - 2 Start - Change"
+when
+	Item DWD_Warnung_2_Start changed
+then
+	val DateTime Start = new DateTime((DWD_Warnung_2_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	val DateTime Start_Tag = new DateTime((DWD_Warnung_2_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long Diff = Math::round((Start_Tag.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	val String Uhrzeit = Start.toString.substring(11,16)
+	val String Tag = Start.toString.substring(8,10)
+	val String Monat = Start.toString.substring(5,7)
+	if ( Diff == 0 ) {
+		DWD_Warnung_2_Start_lesbar.postUpdate("heute " +Uhrzeit)
+	} else if ( Diff == 1 ) {
+		DWD_Warnung_2_Start_lesbar.postUpdate("morgen " +Uhrzeit)
+	} else if ( Diff == -1 ) {
+		DWD_Warnung_2_Start_lesbar.postUpdate("gestern " +Uhrzeit)
+	} else {
+		DWD_Warnung_2_Start_lesbar.postUpdate(Tag +"." +Monat +". " +Uhrzeit)
+	}
+	Thread::sleep(3000)
+	if (DWD_Warnung_2_Severity.state!="0") {
+		if (DWD_Warnung_2_Event.state=="UV-INDEX") {
+			sendTelegram("haus_an_jochen_bot", "UV-Warnung von %s bis %s", DWD_Warnung_2_Start_lesbar.state.toString, DWD_Warnung_2_End_lesbar.state.toString)
+		} else if (DWD_Warnung_2_Event.state=="HITZE") {
+			sendTelegram("haus_an_jochen_bot", "Hitze-Warnung von %s bis %s", DWD_Warnung_2_Start_lesbar.state.toString, DWD_Warnung_2_End_lesbar.state.toString)
+		} else {
+			sendTelegram("haus_an_jochen_bot", "Warnung: %s von %s bis %s (%s) [%s]", DWD_Warnung_2_Event.state.toString, DWD_Warnung_2_Start_lesbar.state.toString, DWD_Warnung_2_End_lesbar.state.toString, DWD_Warnung_2_Parameter.state.toString, DWD_Warnung_2_Severity.state.toString)
+		}
+	}
+end
+
+rule "Wetterwarnungen lesbarer machen - 3 Start - Change"
+when
+	Item DWD_Warnung_3_Start changed
+then
+	val DateTime Start = new DateTime((DWD_Warnung_3_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	val DateTime Start_Tag = new DateTime((DWD_Warnung_3_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long Diff = Math::round((Start_Tag.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	val String Uhrzeit = Start.toString.substring(11,16)
+	val String Tag = Start.toString.substring(8,10)
+	val String Monat = Start.toString.substring(5,7)
+	if ( Diff == 0 ) {
+		DWD_Warnung_3_Start_lesbar.postUpdate("heute " +Uhrzeit)
+	} else if ( Diff == 1 ) {
+		DWD_Warnung_3_Start_lesbar.postUpdate("morgen " +Uhrzeit)
+	} else if ( Diff == -1 ) {
+		DWD_Warnung_3_Start_lesbar.postUpdate("gestern " +Uhrzeit)
+	} else {
+		DWD_Warnung_3_Start_lesbar.postUpdate(Tag +"." +Monat +". " +Uhrzeit)
+	}
+	Thread::sleep(3000)
+	if (DWD_Warnung_3_Severity.state!="0") {
+		if (DWD_Warnung_3_Event.state=="UV-INDEX") {
+			sendTelegram("haus_an_jochen_bot", "UV-Warnung von %s bis %s", DWD_Warnung_3_Start_lesbar.state.toString, DWD_Warnung_3_End_lesbar.state.toString)
+		} else if (DWD_Warnung_3_Event.state=="HITZE") {
+			sendTelegram("haus_an_jochen_bot", "Hitze-Warnung von %s bis %s", DWD_Warnung_3_Start_lesbar.state.toString, DWD_Warnung_3_End_lesbar.state.toString)
+		} else {
+			sendTelegram("haus_an_jochen_bot", "Warnung: %s von %s bis %s (%s) [%s]", DWD_Warnung_3_Event.state.toString, DWD_Warnung_3_Start_lesbar.state.toString, DWD_Warnung_3_End_lesbar.state.toString, DWD_Warnung_3_Parameter.state.toString, DWD_Warnung_3_Severity.state.toString)
+		}
+	}
+end
+
+rule "Wetterwarnungen lesbarer machen - 1 Start - Time"
+when
+	Time cron "0 11 0 1/1 * ? *"
+then
+	val DateTime Start = new DateTime((DWD_Warnung_1_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	val DateTime Start_Tag = new DateTime((DWD_Warnung_1_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long Diff = Math::round((Start_Tag.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	val String Uhrzeit = Start.toString.substring(11,16)
+	val String Tag = Start.toString.substring(8,10)
+	val String Monat = Start.toString.substring(5,7)
+	if ( Diff == 0 ) {
+		DWD_Warnung_1_Start_lesbar.postUpdate("heute " +Uhrzeit)
+	} else if ( Diff == 1 ) {
+		DWD_Warnung_1_Start_lesbar.postUpdate("morgen " +Uhrzeit)
+	} else if ( Diff == -1 ) {
+		DWD_Warnung_1_Start_lesbar.postUpdate("gestern " +Uhrzeit)
+	} else {
+		DWD_Warnung_1_Start_lesbar.postUpdate(Tag +"." +Monat +". " +Uhrzeit)
+	}
+end
+
+rule "Wetterwarnungen lesbarer machen - 2 Start - Time"
+when
+	Time cron "0 11 0 1/1 * ? *"
+then
+	val DateTime Start = new DateTime((DWD_Warnung_2_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	val DateTime Start_Tag = new DateTime((DWD_Warnung_2_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long Diff = Math::round((Start_Tag.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	val String Uhrzeit = Start.toString.substring(11,16)
+	val String Tag = Start.toString.substring(8,10)
+	val String Monat = Start.toString.substring(5,7)
+	if ( Diff == 0 ) {
+		DWD_Warnung_2_Start_lesbar.postUpdate("heute " +Uhrzeit)
+	} else if ( Diff == 1 ) {
+		DWD_Warnung_2_Start_lesbar.postUpdate("morgen " +Uhrzeit)
+	} else if ( Diff == -1 ) {
+		DWD_Warnung_2_Start_lesbar.postUpdate("gestern " +Uhrzeit)
+	} else {
+		DWD_Warnung_2_Start_lesbar.postUpdate(Tag +"." +Monat +". " +Uhrzeit)
+	}
+end
+
+rule "Wetterwarnungen lesbarer machen - 3 Start - Time"
+when
+	Time cron "0 11 0 1/1 * ? *"
+then
+	val DateTime Start = new DateTime((DWD_Warnung_3_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	val DateTime Start_Tag = new DateTime((DWD_Warnung_3_Start.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long Diff = Math::round((Start_Tag.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	val String Uhrzeit = Start.toString.substring(11,16)
+	val String Tag = Start.toString.substring(8,10)
+	val String Monat = Start.toString.substring(5,7)
+	if ( Diff == 0 ) {
+		DWD_Warnung_3_Start_lesbar.postUpdate("heute " +Uhrzeit)
+	} else if ( Diff == 1 ) {
+		DWD_Warnung_3_Start_lesbar.postUpdate("morgen " +Uhrzeit)
+	} else if ( Diff == -1 ) {
+		DWD_Warnung_3_Start_lesbar.postUpdate("gestern " +Uhrzeit)
+	} else {
+		DWD_Warnung_3_Start_lesbar.postUpdate(Tag +"." +Monat +". " +Uhrzeit)
+	}
+end
+
+rule "Wetterwarnungen lesbarer machen - 1 End"
+when
+	Item DWD_Warnung_1_End changed or
+	Time cron "0 11 0 1/1 * ? *"
+then
+	val DateTime Start = new DateTime((DWD_Warnung_1_End.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	val DateTime Start_Tag = new DateTime((DWD_Warnung_1_End.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long Diff = Math::round((Start_Tag.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	val String Uhrzeit = Start.toString.substring(11,16)
+	val String Tag = Start.toString.substring(8,10)
+	val String Monat = Start.toString.substring(5,7)
+	if ( Diff == 0 ) {
+		DWD_Warnung_1_End_lesbar.postUpdate("heute " +Uhrzeit)
+	} else if ( Diff == 1 ) {
+		DWD_Warnung_1_End_lesbar.postUpdate("morgen " +Uhrzeit)
+	} else if ( Diff == -1 ) {
+		DWD_Warnung_1_End_lesbar.postUpdate("gestern " +Uhrzeit)
+	} else {
+		DWD_Warnung_1_End_lesbar.postUpdate(Tag +"." +Monat +". " +Uhrzeit)
+	}
+end
+
+rule "Wetterwarnungen lesbarer machen - 2 End"
+when
+	Item DWD_Warnung_2_End changed or
+	Time cron "0 11 0 1/1 * ? *"
+then
+	val DateTime Start = new DateTime((DWD_Warnung_2_End.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	val DateTime Start_Tag = new DateTime((DWD_Warnung_2_End.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long Diff = Math::round((Start_Tag.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	val String Uhrzeit = Start.toString.substring(11,16)
+	val String Tag = Start.toString.substring(8,10)
+	val String Monat = Start.toString.substring(5,7)
+	if ( Diff == 0 ) {
+		DWD_Warnung_2_End_lesbar.postUpdate("heute " +Uhrzeit)
+	} else if ( Diff == 1 ) {
+		DWD_Warnung_2_End_lesbar.postUpdate("morgen " +Uhrzeit)
+	} else if ( Diff == -1 ) {
+		DWD_Warnung_2_End_lesbar.postUpdate("gestern " +Uhrzeit)
+	} else {
+		DWD_Warnung_2_End_lesbar.postUpdate(Tag +"." +Monat +". " +Uhrzeit)
+	}
+end
+
+rule "Wetterwarnungen lesbarer machen - 3 End"
+when
+	Item DWD_Warnung_3_End changed or
+	Time cron "0 11 0 1/1 * ? *"
+then
+	val DateTime Start = new DateTime((DWD_Warnung_3_End.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)
+	val DateTime Start_Tag = new DateTime((DWD_Warnung_3_End.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli).withTimeAtStartOfDay
+	val Long Diff = Math::round((Start_Tag.millis - now.withTimeAtStartOfDay.millis) / (86400000.0))
+	val String Uhrzeit = Start.toString.substring(11,16)
+	val String Tag = Start.toString.substring(8,10)
+	val String Monat = Start.toString.substring(5,7)
+	if ( Diff == 0 ) {
+		DWD_Warnung_3_End_lesbar.postUpdate("heute " +Uhrzeit)
+	} else if ( Diff == 1 ) {
+		DWD_Warnung_3_End_lesbar.postUpdate("morgen " +Uhrzeit)
+	} else if ( Diff == -1 ) {
+		DWD_Warnung_3_End_lesbar.postUpdate("gestern " +Uhrzeit)
+	} else {
+		DWD_Warnung_3_End_lesbar.postUpdate(Tag +"." +Monat +". " +Uhrzeit)
+	}
+end
+
+rule "Wetterwarnungen - Max Severity"
+when
+	Item DWD_Warnung_1_Severity changed or
+	Item DWD_Warnung_2_Severity changed or
+	Item DWD_Warnung_3_Severity changed or
+	Item DelayedStartup changed from OFF to ON
+then
+	var String MaxSeverity = "0"
+	if((DWD_Warnung_1_Severity.state=="Minor") || (DWD_Warnung_2_Severity.state=="Minor") || (DWD_Warnung_3_Severity.state=="Minor")) {
+		MaxSeverity = "Minor"
+	}
+	if((DWD_Warnung_1_Severity.state=="Moderate") || (DWD_Warnung_2_Severity.state=="Moderate") || (DWD_Warnung_3_Severity.state=="Moderate")) {
+		MaxSeverity = "Moderate"
+	}
+	if((DWD_Warnung_1_Severity.state=="Severe") || (DWD_Warnung_2_Severity.state=="Severe") || (DWD_Warnung_3_Severity.state=="Severe")) {
+		MaxSeverity = "Severe"
+	}
+	if((DWD_Warnung_1_Severity.state=="Extreme") || (DWD_Warnung_2_Severity.state=="Extreme") || (DWD_Warnung_3_Severity.state=="Extreme")) {
+		MaxSeverity = "Extreme"
+	}
+	DWD_Warnung_Max_Severity.postUpdate(MaxSeverity)
+end
