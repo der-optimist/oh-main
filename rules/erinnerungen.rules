@@ -1,0 +1,22 @@
+rule "Kaffeemaschine reinigen - Blinkeding"
+when
+	Time cron "0 0 17 ? * SUN *"
+then
+	Erinnerung_Kaffeemaschine.postUpdate(ON)
+end
+
+rule "blumen drin duengen - Blinkeding"
+when
+	Time cron "0 30 7 ? 1/1 WED#1 *"
+then
+	Erinnerung_Blumen_drin.postUpdate(ON)
+end
+
+rule "blumen draussen duengen - Blinkeding"
+when
+	Time cron "0 0 18 1 1/1 ? *" or
+	Time cron "0 0 18 11 1/1 ? *" or
+	Time cron "0 0 18 21 1/1 ? *"
+then
+	Erinnerung_Blumen_draussen.postUpdate(ON)
+end
