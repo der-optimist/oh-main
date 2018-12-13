@@ -1,0 +1,10 @@
+rule "Shaddow SVG"
+when
+    Item Sun_Azimuth received update
+then
+
+        val resp =  executeCommandLine("/usr/bin/python /etc/openhab2/scripts/shaddow.py update", 10000)
+        logInfo("Shaddow", "Updating Shaddow SVG")          
+        logInfo("Shaddow", resp)          
+
+end
